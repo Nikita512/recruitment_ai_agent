@@ -6,11 +6,9 @@ httpx==0.28.1
 #Data processing
 numpy==2.0.2
 pandas==2.2.3
-xarray==2025.10.1
 
 # Machine learning
 scikit-learn==1.6.1
-lightgbm==4.6.0
 xgboost==3.0.5
 prophet==1.1.7
 umap-learn==0.5.9.post2
@@ -33,7 +31,6 @@ nltk==3.9.1
 # File handling/uploads
 python-multipart==0.0.20
 openpyxl==3.1.5
-pillow==11.3.0
 python-dotenv==1.1.1
 
 # Visualization
@@ -54,3 +51,11 @@ typing-extensions==4.15.0
 beautifulsoup4==4.13.5
 lxml==5.4.0
 requests==2.32.4
+jinja2
+aiofiles
+openai
+pdfplumber
+python-docx
+python-dotenv 
+nest-asyncio 
+pyngrok
