@@ -1,25 +1,26 @@
 # Web framework
 fastapi==0.118.2
 uvicorn==0.37.0
+httpx==0.28.1
+aiohttp==3.13.0
 
-# Data processing
+# Data processing & ML
 pandas==2.2.2
 numpy==2.0.2
 xarray==2025.10.1
-
-# Machine learning
 scikit-learn==1.6.1
 lightgbm==4.6.0
 xgboost==3.0.5
 prophet==1.1.7
 umap-learn==0.5.9.post2
 
-# Data visualization
-matplotlib==3.10.0
-seaborn==0.13.2
-plotly==5.24.1
-altair==5.5.0
-bokeh==3.7.3
+# NLP
+spacy==3.8.7
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
+transformers==4.57.0
+sentence-transformers==5.1.1
+textblob==0.19.0
+nltk==3.9.1
 
 # File handling / uploads
 python-multipart==0.0.20
@@ -27,18 +28,12 @@ openpyxl==3.1.5
 pillow==11.3.0
 python-dotenv==1.1.1
 
-# HTTP / APIs
-requests==2.32.4
-httpx==0.28.1
-aiohttp==3.13.0
-
-# NLP / text
-spacy==3.8.7
-en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
-transformers==4.57.0
-sentence-transformers==5.1.1
-textblob==0.19.0
-nltk==3.9.1
+# Visualization
+matplotlib==3.10.0
+seaborn==0.13.2
+plotly==5.24.1
+altair==5.5.0
+bokeh==3.7.3
 
 # Utilities
 tqdm==4.67.1
@@ -48,8 +43,6 @@ packaging==25.0
 orjson==3.11.3
 protobuf==5.29.5
 typing-extensions==4.15.0
-
-# Others
-pyyaml==6.0.3
 beautifulsoup4==4.13.5
 lxml==5.4.0
+requests==2.32.4
