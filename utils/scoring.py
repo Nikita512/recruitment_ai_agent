@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from openai import OpenAI
 
 # --- Initialize OpenAI client once ---
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
 
 # --- Simple TF-IDF based score ---
 def simple_tfidf_score(jd_text, resume_text):
