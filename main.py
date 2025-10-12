@@ -7,8 +7,8 @@ import os, textwrap, json
 import openai
 from typing import List
 import uuid
-
 from dotenv import load_dotenv
+
 load_dotenv()  # loads variables from .env automatically
 
 app = FastAPI(title='Recruitment AI Agent')
