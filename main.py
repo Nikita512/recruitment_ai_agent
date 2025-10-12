@@ -89,7 +89,7 @@ async def upload_resumes(resumes: List[UploadFile] = File(...)):
 # Generate JD via LLM (simple endpoint)
 @app.post('/generate_jd')
 async def generate_jd(job_title: str = Form(...), years: str = Form(...), must_have: str = Form(''), company: str = Form(''), employment_type: str = Form('Full-time'), industry: str = Form(''), location: str = Form('')):
-    prompt = f\"\"\"Generate a concise, professional job description for:
+    prompt = f"""Generate a concise, professional job description for:
 Title: {job_title}
 Years: {years}
 Must-have skills (comma-separated): {must_have}
@@ -97,7 +97,8 @@ Company: {company}
 Employment Type: {employment_type}
 Industry: {industry}
 Location: {location}
-Provide a JD including responsibilities and required qualifications.\"\"\"
+Provide a JD including responsibilities and required qualifications."""
+
     # Use OpenAI completion (user must set OPENAI_API_KEY env var)
     openai.api_key = os.getenv('OPENAI_API_KEY')
     if not openai.api_key:
