@@ -109,7 +109,7 @@ Provide a JD including responsibilities and required qualifications."""
         max_tokens=450
     )
     jd_text = resp['choices'][0]['message']['content']
-    jid = f\"jd_{uuid.uuid4().hex[:8]}.txt\"
+    jid = f"jd_{uuid.uuid4().hex[:8]}.txt"
     with open(os.path.join('jds', jid), 'w', encoding='utf-8') as f:
         f.write(jd_text)
     return {'jd_file': jid, 'jd_text': jd_text}
@@ -121,8 +121,8 @@ async def generate_emails(candidate_name: str = Form(...), candidate_email: str 
     if not openai.api_key:
         return {'error':'OPENAI_API_KEY not set.'}
     if decision == 'interview':
-        prompt = f\"Write a professional interview call email to {candidate_name} for the role {role}. Provide subject and body.\"
+        prompt = f"Write a professional interview call email to {candidate_name} for the role {role}. Provide subject and body."
     else:
-        prompt = f\"Write a polite rejection email to {candidate_name} for the role {role}. Provide subject and body.\"
+        prompt = f"Write a polite rejection email to {candidate_name} for the role {role}. Provide subject and body."
     resp = openai.ChatCompletion.create(model='gpt-4o', messages=[{'role':'user','content':prompt}], max_tokens=300)
     return {'email': resp['choices'][0]['message']['content']}
