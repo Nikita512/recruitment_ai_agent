@@ -1,0 +1,1 @@
+Priya Sharma\nSummary: Frontend engineer...\nSkills: react, javascript, aws, docker\nExperience: 4 years\nEducation: B.Tech

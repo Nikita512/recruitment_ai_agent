@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head><title>Recruitment AI Agent</title></head>
+<body>
+  <h1>Recruitment AI Agent</h1>
+  <form action="/upload_jd" method="post" enctype="multipart/form-data">
+    <h3>Job Description</h3>
+    <textarea name="jd_text" rows="8" cols="80" placeholder="Paste JD here"></textarea><br/>
+    OR upload JD file (pdf/docx): <input type="file" name="jd_file"/><br/>
+    <button type="submit">Save JD</button>
+  </form>
+
+  <hr/>
+  <form action="/upload_resumes" method="post" enctype="multipart/form-data">
+    <h3>Upload up to 10 resumes (pdf/docx)</h3>
+    <input type="file" name="resumes" multiple/><br/>
+    <button type="submit">Upload & Score</button>
+  </form>
+  <hr/>
+  <div>
+    <a href="/docs">OpenAPI docs</a>
+  </div>
+</body>
+</html>

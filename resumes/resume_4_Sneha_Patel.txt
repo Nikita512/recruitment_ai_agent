@@ -1,0 +1,1 @@
+Sneha Patel\nSummary: ML engineer...\nSkills: python, nlp, machine learning, pytorch\nExperience: 6 years\nEducation: B.Tech

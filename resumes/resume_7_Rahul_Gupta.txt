@@ -1,0 +1,1 @@
+Rahul Gupta\nSummary: NLP engineer...\nSkills: python, fastapi, nlp, aws\nExperience: 9 years\nEducation: B.Tech

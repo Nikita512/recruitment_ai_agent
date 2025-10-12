@@ -1,0 +1,1 @@
+Aman Kumar\nSummary: Backend engineer with 4 years experience...\nSkills: python, fastapi, docker, aws\nExperience: 3 years\nEducation: B.Tech
