@@ -5,7 +5,7 @@ httpx==0.28.1
 
 #Data processing
 numpy==2.0.2
-pandas==2.2.3+
+pandas==2.2.3
 xarray==2025.10.1
 
 # Machine learning
