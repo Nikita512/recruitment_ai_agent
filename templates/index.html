@@ -13,7 +13,6 @@
       padding: 0;
       color: #222;
     }
-
     header {
       background: #0078ff;
       color: #fff;
@@ -21,13 +20,11 @@
       text-align: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
     h1 {
       margin: 0;
       font-weight: 600;
       font-size: 1.8rem;
     }
-
     main {
       display: flex;
       flex-direction: column;
@@ -36,7 +33,6 @@
       max-width: 800px;
       padding: 0 15px;
     }
-
     .card {
       background: #fff;
       border-radius: 12px;
@@ -46,32 +42,18 @@
       margin-bottom: 25px;
       transition: transform 0.2s ease;
     }
-
-    .card:hover {
-      transform: translateY(-3px);
-    }
-
-    h3 {
-      color: #0078ff;
-      margin-top: 0;
-    }
-
-    textarea {
+    .card:hover { transform: translateY(-3px); }
+    h3 { color: #0078ff; margin-top: 0; }
+    textarea, input[type="text"], input[type="email"] {
       width: 100%;
       border-radius: 8px;
       border: 1px solid #ccc;
       padding: 10px;
       font-size: 1rem;
-      resize: vertical;
       margin-bottom: 10px;
       font-family: 'Inter', sans-serif;
     }
-
-    input[type="file"] {
-      margin-top: 8px;
-      font-size: 0.95rem;
-    }
-
+    input[type="file"] { margin-top: 8px; font-size: 0.95rem; }
     button {
       background-color: #0078ff;
       color: #fff;
@@ -82,31 +64,12 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
-
-    button:hover {
-      background-color: #005fcc;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #ddd;
-      margin: 30px 0;
-    }
-
+    button:hover { background-color: #005fcc; }
     footer {
       text-align: center;
       color: #555;
       font-size: 0.9rem;
       padding-bottom: 20px;
-    }
-
-    a {
-      color: #0078ff;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
     }
   </style>
 </head>
@@ -117,9 +80,10 @@
   </header>
 
   <main>
+    <!-- JD Upload -->
     <div class="card">
       <h3>Job Description</h3>
-      <form action="/upload_jd" method="post" enctype="multipart/form-data">
+      <form id="jdForm" enctype="multipart/form-data">
         <textarea name="jd_text" rows="8" placeholder="Paste your Job Description here..."></textarea><br/>
         <label>OR upload JD file (PDF/DOCX):</label><br/>
         <input type="file" name="jd_file" accept=".pdf,.doc,.docx"/><br/><br/>
@@ -127,23 +91,68 @@
       </form>
     </div>
 
+    <!-- Resume Upload -->
     <div class="card">
       <h3>Upload Resumes</h3>
-      <form action="/upload_resumes" method="post" enctype="multipart/form-data">
+      <form id="resumeForm" enctype="multipart/form-data">
         <p>Upload up to 10 resumes (PDF/DOCX):</p>
         <input type="file" name="resumes" multiple accept=".pdf,.doc,.docx"/><br/><br/>
         <button type="submit">Upload & Score</button>
       </form>
     </div>
 
-    <div class="card" style="text-align:center;">
-      <h3>Developer Tools</h3>
-      <p><a href="/docs" target="_blank">OpenAPI Docs</a></p>
+    <!-- Email Generator -->
+    <div class="card">
+      <h3>Generate Candidate Email</h3>
+      <form id="emailForm">
+        <input type="text" name="candidate_name" placeholder="Candidate Name" required><br/>
+        <input type="email" name="candidate_email" placeholder="Candidate Email" required><br/>
+        <input type="text" name="role" placeholder="Job Role" required><br/>
+        <label>Decision:</label>
+        <select name="decision" required>
+          <option value="interview">Interview</option>
+          <option value="reject">Reject</option>
+        </select><br/><br/>
+        <button type="submit">Generate Email</button>
+      </form>
+      <pre id="emailOutput" style="white-space: pre-wrap; margin-top: 15px;"></pre>
     </div>
   </main>
 
   <footer>
     <p>© 2025 Recruitment AI Agent — Powered by FastAPI & OpenAI</p>
   </footer>
+
+  <script>
+    async function handleForm(formId, endpoint, successMessage, outputHandler = null) {
+      const form = document.getElementById(formId);
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        try {
+          const res = await fetch(endpoint, { method: 'POST', body: formData });
+          const data = await res.json();
+          if (data.error) {
+            alert("❌ " + data.error);
+          } else {
+            if (outputHandler) outputHandler(data);
+            alert("✅ " + successMessage);
+            form.reset();
+          }
+        } catch (err) {
+          alert("⚠️ Something went wrong: " + err.message);
+        }
+      });
+    }
+
+    // JD upload
+    handleForm("jdForm", "/upload_jd", "Job Description Saved!");
+    // Resume upload
+    handleForm("resumeForm", "/upload_resumes", "Resumes Scored Successfully!");
+    // Email generation
+    handleForm("emailForm", "/generate_emails", "Email Generated!", (data) => {
+      document.getElementById("emailOutput").innerText = data.email || "No email generated.";
+    });
+  </script>
 </body>
 </html>
