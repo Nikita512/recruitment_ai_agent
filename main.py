@@ -1,22 +1,30 @@
+# main.py
 from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from utils.text_extract import extract_text_generic
 from utils.scoring import embedding_score, extract_skills_from_text, simple_tfidf_score
-import os, textwrap, json
+import os, textwrap, json, io
 import openai
 from typing import List
 import uuid
 from dotenv import load_dotenv
 
-load_dotenv()  # loads variables from .env automatically
+# Load env vars from .env if present (useful locally)
+load_dotenv()
+
+# Ensure folders exist (Render may not create them)
+os.makedirs("jds", exist_ok=True)
+os.makedirs("resumes", exist_ok=True)
+os.makedirs("templates", exist_ok=True)
 
 app = FastAPI(title='Recruitment AI Agent')
 templates = Jinja2Templates(directory='templates')
 
-# ====== CONFIG: Set OPENAI_API_KEY as env var or set openai.api_key in code ======
-# openai.api_key = os.getenv('OPENAI_API_KEY')  # recommended
-# For Colab, we will set environment variable before running.
+# Ensure OpenAI key is available for OpenAI calls
+OPENAI_KEY = os.getenv('OPENAI_API_KEY')
+if OPENAI_KEY:
+    openai.api_key = OPENAI_KEY
 
 @app.get('/', response_class=HTMLResponse)
 def home(request: Request):
@@ -47,9 +55,6 @@ async def upload_resumes(resumes: List[UploadFile] = File(...)):
         return {'error':'No JD found; please add a JD first.'}
     with open(os.path.join('jds', jd_files[-1]), 'r', encoding='utf-8') as f:
         jd_text = f.read()
-    # extract must-have skills from jd_text naive parse: look for "Must-have" or list after "Skills"
-    # For demo, we accept as comma separated skills in JD header - but user can refine
-    # Here we will ask LLM later to extract skills if needed.
 
     # simple skill list heuristic
     common_skills = ['python','fastapi','sql','aws','docker','kubernetes','react','java','c++','nlp','machine learning']
@@ -60,11 +65,13 @@ async def upload_resumes(resumes: List[UploadFile] = File(...)):
         # score with embedding & TF-IDF averaged
         try:
             emb_score = embedding_score(jd_text, text)
-        except Exception:
+        except Exception as e:
+            print("Embedding scoring error:", e)
             emb_score = 0.0
         try:
             tf_score = simple_tfidf_score(jd_text, text)
-        except Exception:
+        except Exception as e:
+            print("TF-IDF scoring error:", e)
             tf_score = 0.0
         final_score = (emb_score * 0.7) + (tf_score * 0.3)
         found, missing = extract_skills_from_text(text, common_skills)
@@ -100,11 +107,11 @@ Location: {location}
 Provide a JD including responsibilities and required qualifications."""
 
     # Use OpenAI completion (user must set OPENAI_API_KEY env var)
-    openai.api_key = os.getenv('OPENAI_API_KEY')
     if not openai.api_key:
         return {'error':'OPENAI_API_KEY not set in environment. Set it before calling this endpoint.'}
+    # Choose a stable model name; adjust if you have access to other models
     resp = openai.ChatCompletion.create(
-        model='gpt-4o-mini' if 'gpt-4o-mini' in openai.Model.list()['data'][0]['id'] else 'gpt-4o',
+        model='gpt-4o-mini',
         messages=[{'role':'user','content':prompt}],
         max_tokens=450
     )
@@ -117,12 +124,11 @@ Provide a JD including responsibilities and required qualifications."""
 # Generate email templates using LLM
 @app.post('/generate_emails')
 async def generate_emails(candidate_name: str = Form(...), candidate_email: str = Form(...), decision: str = Form('interview'), role: str = Form('')):
-    openai.api_key = os.getenv('OPENAI_API_KEY')
     if not openai.api_key:
         return {'error':'OPENAI_API_KEY not set.'}
     if decision == 'interview':
         prompt = f"Write a professional interview call email to {candidate_name} for the role {role}. Provide subject and body."
     else:
         prompt = f"Write a polite rejection email to {candidate_name} for the role {role}. Provide subject and body."
-    resp = openai.ChatCompletion.create(model='gpt-4o', messages=[{'role':'user','content':prompt}], max_tokens=300)
+    resp = openai.ChatCompletion.create(model='gpt-4o-mini', messages=[{'role':'user','content':prompt}], max_tokens=300)
     return {'email': resp['choices'][0]['message']['content']}
