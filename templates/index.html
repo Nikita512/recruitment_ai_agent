@@ -20,11 +20,7 @@
       text-align: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    h1 {
-      margin: 0;
-      font-weight: 600;
-      font-size: 1.8rem;
-    }
+    h1 { margin: 0; font-weight: 600; font-size: 1.8rem; }
     main {
       display: flex;
       flex-direction: column;
@@ -44,7 +40,7 @@
     }
     .card:hover { transform: translateY(-3px); }
     h3 { color: #0078ff; margin-top: 0; }
-    textarea, input[type="text"], input[type="email"] {
+    textarea, input[type="text"], input[type="email"], select {
       width: 100%;
       border-radius: 8px;
       border: 1px solid #ccc;
@@ -65,12 +61,14 @@
       transition: background-color 0.3s;
     }
     button:hover { background-color: #005fcc; }
-    footer {
-      text-align: center;
-      color: #555;
-      font-size: 0.9rem;
-      padding-bottom: 20px;
+    .result-box {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f4f6f8;
+      border: 1px solid #ddd;
     }
+    footer { text-align: center; color: #555; font-size: 0.9rem; padding-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -89,6 +87,7 @@
         <input type="file" name="jd_file" accept=".pdf,.doc,.docx"/><br/><br/>
         <button type="submit">Save JD</button>
       </form>
+      <div id="jdResult" class="result-box"></div>
     </div>
 
     <!-- Resume Upload -->
@@ -99,6 +98,7 @@
         <input type="file" name="resumes" multiple accept=".pdf,.doc,.docx"/><br/><br/>
         <button type="submit">Upload & Score</button>
       </form>
+      <div id="resumeResults" class="result-box"></div>
     </div>
 
     <!-- Email Generator -->
@@ -115,7 +115,7 @@
         </select><br/><br/>
         <button type="submit">Generate Email</button>
       </form>
-      <pre id="emailOutput" style="white-space: pre-wrap; margin-top: 15px;"></pre>
+      <pre id="emailOutput" class="result-box"></pre>
     </div>
   </main>
 
@@ -124,8 +124,10 @@
   </footer>
 
   <script>
-    async function handleForm(formId, endpoint, successMessage, outputHandler = null) {
+    async function handleFormInline(formId, endpoint, resultContainerId, transformFunc=null) {
       const form = document.getElementById(formId);
+      const resultContainer = document.getElementById(resultContainerId);
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
@@ -133,26 +135,40 @@
           const res = await fetch(endpoint, { method: 'POST', body: formData });
           const data = await res.json();
           if (data.error) {
-            alert("❌ " + data.error);
+            resultContainer.innerText = "❌ " + data.error;
           } else {
-            if (outputHandler) outputHandler(data);
-            alert("✅ " + successMessage);
+            if (transformFunc) {
+              resultContainer.innerHTML = transformFunc(data);
+            } else {
+              resultContainer.innerText = "✅ Operation successful!";
+            }
             form.reset();
           }
         } catch (err) {
-          alert("⚠️ Something went wrong: " + err.message);
+          resultContainer.innerText = "⚠️ Something went wrong: " + err.message;
         }
       });
     }
 
     // JD upload
-    handleForm("jdForm", "/upload_jd", "Job Description Saved!");
-    // Resume upload
-    handleForm("resumeForm", "/upload_resumes", "Resumes Scored Successfully!");
-    // Email generation
-    handleForm("emailForm", "/generate_emails", "Email Generated!", (data) => {
-      document.getElementById("emailOutput").innerText = data.email || "No email generated.";
+    handleFormInline("jdForm", "/upload_jd", "jdResult", data => {
+      return `<strong>JD saved successfully!</strong>`;
     });
+
+    // Resume upload
+    handleFormInline("resumeForm", "/upload_resumes", "resumeResults", data => {
+      // data should return an array of {filename, score, feedback}
+      if (!data.results || data.results.length === 0) return "No resumes scored.";
+      let html = "<strong>Resume Scores:</strong><br/><ul>";
+      data.results.forEach(r => {
+        html += `<li><strong>${r.filename}:</strong> Score ${r.score} — ${r.feedback}</li>`;
+      });
+      html += "</ul>";
+      return html;
+    });
+
+    // Email generation
+    handleFormInline("emailForm", "/generate_emails", "emailOutput", data => data.email || "No email generated.");
   </script>
 </body>
 </html>
