@@ -66,22 +66,23 @@ async def upload_resumes(resumes: List[UploadFile] = File(...)):
     for r in resumes[:10]:
         content = await r.read()
         text = extract_text_generic(io.BytesIO(content), r.filename)
+        if len(text.strip()) == 0:
+            print(f"Warning: Could not extract text from {r.filename}")
+
 
         # Compute scores
-        try:
-            emb_score = embedding_score(jd_text, text)
-        except Exception as e:
-            print("Embedding scoring error:", e)
+        tf_score = simple_tfidf_score(jd_text, text)
+        if OPENAI_KEY:
+            try:
+                emb_score = embedding_score(jd_text, text)
+            except Exception as e:
+                print("Embedding scoring error:", e)
+                emb_score = 0.0
+        else:
             emb_score = 0.0
 
-        try:
-            tf_score = simple_tfidf_score(jd_text, text)
-        except Exception as e:
-            print("TF-IDF scoring error:", e)
-            tf_score = 0.0
-
+        # Fallback: if both scores 0, at least use TF-IDF
         final_score = (emb_score * 0.7) + (tf_score * 0.3)
-        found, missing = extract_skills_from_text(text, common_skills)
 
         # Add remarks based on score
         if final_score < 40:
@@ -110,19 +111,25 @@ async def generate_emails(candidate_name: str = Form(...),
                           decision: str = Form("interview"),
                           role: str = Form("")):
 
-    if not openai.api_key:
+    if not OPENAI_KEY:
         return JSONResponse({"error": "OPENAI_API_KEY not set."})
 
-    if decision.lower() == "interview":
-        prompt = f"Write a professional interview call email to {candidate_name} for the role {role}. Provide subject and body."
-    else:
-        prompt = f"Write a polite rejection email to {candidate_name} for the role {role}. Provide subject and body."
-
-    resp = openai.ChatCompletion.create(
-        model="gpt-4o-mini",
-        messages=[{"role":"user","content":prompt}],
-        max_tokens=300
+    prompt = (
+        f"Write a professional interview call email to {candidate_name} for the role {role}. "
+        "Provide subject and body."
+        if decision.lower() == "interview" else
+        f"Write a polite rejection email to {candidate_name} for the role {role}. "
+        "Provide subject and body."
     )
 
-    email_content = resp['choices'][0]['message']['content']
-    return JSONResponse({"email": email_content})
+    try:
+        resp = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[{"role":"user","content":prompt}],
+            max_tokens=300
+        )
+        email_content = resp['choices'][0]['message']['content']
+        return JSONResponse({"email": email_content})
+    except Exception as e:
+        print("Email generation error:", e)
+        return JSONResponse({"error": f"Failed to generate email: {str(e)}"})
