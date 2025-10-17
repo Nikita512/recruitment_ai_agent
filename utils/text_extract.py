@@ -1,3 +1,4 @@
+#text_extract.py
 import pdfplumber
 from docx import Document
 import io
@@ -26,13 +27,15 @@ def extract_text_from_docx(path_or_bytes):
 
 def extract_text_generic(fileobj, filename):
     content = fileobj.read()
+    # Reset pointer so file can be reused if needed
+    fileobj.seek(0)
     if filename.lower().endswith('.pdf'):
         return extract_text_from_pdf(content)
-    elif filename.lower().endswith('.docx') or filename.lower().endswith('.doc'):
+    elif filename.lower().endswith(('.docx', '.doc')):
         return extract_text_from_docx(content)
     else:
-        # fallback: try decode
+        # fallback: try utf-8 decode
         try:
             return content.decode('utf-8')
-        except:
+        except Exception:
             return ''
