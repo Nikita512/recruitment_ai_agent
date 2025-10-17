@@ -71,11 +71,11 @@ async def upload_resumes(resumes: List[UploadFile] = File(...)):
                          "react","java","c++","nlp","machine learning"]
 
         for r in resumes[:10]:
-    try:
-        content = await r.read()
-        text = extract_text_generic(io.BytesIO(content), r.filename)
-        if len(text.strip()) == 0:
-            print(f"Warning: No text extracted from {r.filename}")
+            try:
+                content = await r.read()
+                text = extract_text_generic(io.BytesIO(content), r.filename)
+                if len(text.strip()) == 0:
+                    print(f"Warning: No text extracted from {r.filename}")
 
         # Scores
         tf_score = simple_tfidf_score(jd_text, text)
