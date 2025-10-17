@@ -1,4 +1,4 @@
-# utils/scoring.py
+#scoring.py
 import re
 import os
 import numpy as np
@@ -6,14 +6,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from openai import OpenAI
 
-# Read key from environment (use OPENAI_API_KEY)
+# Read key from environment
 OPENAI_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY")
 client = None
 if OPENAI_KEY:
     client = OpenAI(api_key=OPENAI_KEY)
 
 # --- Simple TF-IDF based score ---
-def simple_tfidf_score(jd_text, resume_text):
+def simple_tfidf_score(jd_text: str, resume_text: str) -> float:
     try:
         vec = TfidfVectorizer(stop_words='english').fit_transform([jd_text, resume_text])
         sim = cosine_similarity(vec[0:1], vec[1:2])[0][0]
@@ -22,10 +22,9 @@ def simple_tfidf_score(jd_text, resume_text):
         print("TF-IDF error:", e)
         return 0.0
 
-# --- Embedding score using OpenAI embeddings (lightweight) ---
-def embedding_score(jd_text, resume_text):
+# --- Embedding score using OpenAI embeddings ---
+def embedding_score(jd_text: str, resume_text: str) -> float:
     if client is None:
-        # If no OpenAI key, fallback to 0 to avoid crashes
         print("OpenAI client not configured; returning 0.0 embedding score.")
         return 0.0
     try:
@@ -49,11 +48,11 @@ def embedding_score(jd_text, resume_text):
         return 0.0
 
 # --- Skill extraction helper ---
-def extract_skills_from_text(text, skill_list):
+def extract_skills_from_text(text: str, skill_list: list) -> tuple[list, list]:
+    """
+    Returns (found_skills, missing_skills)
+    """
     text_low = text.lower()
-    found = []
-    for s in skill_list:
-        if re.search(r'\b' + re.escape(s.lower()) + r'\b', text_low):
-            found.append(s)
+    found = [s for s in skill_list if re.search(r'\b' + re.escape(s.lower()) + r'\b', text_low)]
     missing = [s for s in skill_list if s not in found]
     return found, missing
