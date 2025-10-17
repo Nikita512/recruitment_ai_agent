@@ -161,7 +161,7 @@
       if (!data.results || data.results.length === 0) return "No resumes scored.";
       let html = "<strong>Resume Scores:</strong><br/><ul>";
       data.results.forEach(r => {
-        html += `<li><strong>${r.filename}:</strong> Score ${r.score} — ${r.feedback}</li>`;
+        html += `<li><strong>${r.filename}:</strong> Score ${r.score} — ${r.remarks}</li>`;
       });
       html += "</ul>";
       return html;
