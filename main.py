@@ -71,55 +71,55 @@ async def upload_resumes(resumes: List[UploadFile] = File(...)):
                          "react","java","c++","nlp","machine learning"]
 
         for r in resumes[:10]:
+    try:
+        content = await r.read()
+        text = extract_text_generic(io.BytesIO(content), r.filename)
+        if len(text.strip()) == 0:
+            print(f"Warning: No text extracted from {r.filename}")
+
+        # Scores
+        tf_score = simple_tfidf_score(jd_text, text)
+        emb_score = 0.0
+        if client:
             try:
-                content = await r.read()
-                text = extract_text_generic(io.BytesIO(content), r.filename)
-                if len(text.strip()) == 0:
-                    print(f"Warning: No text extracted from {r.filename}")
-
-                # Scores
-                tf_score = simple_tfidf_score(jd_text, text)
-                emb_score = 0.0
-                if client:
-                    try:
-                        emb_score = embedding_score(jd_text, text)
-                    except Exception as e:
-                        print("Embedding scoring error:", e)
-
-                final_score = (emb_score * 0.7) + (tf_score * 0.3)
-                found, missing = extract_skills_from_text(text, common_skills)
-
-                if final_score < 40:
-                    remarks = "Not a strong match"
-                elif final_score < 70:
-                    remarks = "Partial match"
-                else:
-                    remarks = "Strong match"
-
-                results.append({
-                    "filename": r.filename,
-                    "score": round(float(final_score), 2),
-                    "found_skills": found,
-                    "missing_skills": missing,
-                    "remarks": remarks
-                })
-
+                emb_score = embedding_score(jd_text, text)
             except Exception as e:
-                print(f"Error processing {r.filename}: {e}")
-                results.append({
-                    "filename": r.filename,
-                    "score": 0,
-                    "found_skills": [],
-                    "missing_skills": [],
-                    "remarks": "Error processing file"
-                })
+                print("Embedding scoring error:", e)
 
-        # Sort descending
-        results_sorted = sorted(results, key=lambda x: x["score"], reverse=True)
-        return JSONResponse({"results": results_sorted})
+        final_score = (emb_score * 0.7) + (tf_score * 0.3)
+
+        # Extract skills safely
+        try:
+            found, missing = extract_skills_from_text(text, common_skills)
+        except Exception as e:
+            print(f"Skill extraction failed for {r.filename}: {e}")
+            found, missing = [], []
+
+        # Remarks
+        if final_score < 40:
+            remarks = "Not a strong match"
+        elif final_score < 70:
+            remarks = "Partial match"
+        else:
+            remarks = "Strong match"
+
+        results.append({
+            "filename": r.filename,
+            "score": round(float(final_score), 2),
+            "found_skills": found,
+            "missing_skills": missing,
+            "remarks": remarks
+        })
 
     except Exception as e:
-        return JSONResponse({"error": f"Failed to process resumes: {str(e)}"})
+        print(f"Error processing {r.filename}: {e}")
+        results.append({
+            "filename": r.filename,
+            "score": 0,
+            "found_skills": [],
+            "missing_skills": [],
+            "remarks": "Error processing file"
+        })
 
 # ----------------------
 # Generate Emails
